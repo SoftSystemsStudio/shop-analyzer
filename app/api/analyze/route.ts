@@ -1,31 +1,30 @@
+// app/api/analyze/route.ts
+
 import { NextResponse } from "next/server";
-import fetch from "node-fetch";
-import cheerio from "cheerio";
+import * as cheerio from "cheerio";
 
 export async function POST(req: Request) {
   try {
-    console.log("API route called");
-
     const { storeUrl } = await req.json();
     if (!storeUrl) {
       return NextResponse.json({ result: "Please provide a store URL." });
     }
 
-    console.log("Fetching store:", storeUrl);
-    
     // Fetch public store HTML
     const response = await fetch(storeUrl);
-    if (!response.ok) throw new Error(`Failed to fetch store HTML: ${response.status}`);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch store HTML: ${response.status}`);
+    }
     const html = await response.text();
 
     // Load HTML with Cheerio
     const $ = cheerio.load(html);
 
-    // Extract products (Shopify / Etsy patterns may vary)
+    // Extract products (Shopify / Etsy patterns)
     const products: { name: string; price: string }[] = [];
 
-    // Shopify example: look for product titles and prices
-    $(".product-card, .grid-product").each((i, el) => {
+    // Shopify example: product titles and prices
+    $(".product-card, .grid-product").each((i: number, el: any) => {
       const name = $(el).find(".product-card__title, .grid-product__title").text().trim();
       const price = $(el).find(".price, .grid-product__price").text().trim();
       if (name) products.push({ name, price });
@@ -33,14 +32,17 @@ export async function POST(req: Request) {
 
     // Etsy example fallback
     if (products.length === 0) {
-      $("li.wt-list-unstyled").each((i, el) => {
+      $("li.wt-list-unstyled").each((i: number, el: any) => {
         const name = $(el).find("h3").text().trim();
         const price = $(el).find(".currency-value").text().trim();
         if (name) products.push({ name, price });
       });
     }
 
-    console.log("Extracted products:", products.slice(0, 5));
+    // If no products found, give a fallback message
+    if (products.length === 0) {
+      products.push({ name: "No products found or store blocks scraping", price: "" });
+    }
 
     // Prepare prompt for OpenAI
     const prompt = `Analyze this e-commerce store and give actionable advice based on these products:\n${products
@@ -61,8 +63,6 @@ export async function POST(req: Request) {
     });
 
     const data = await openAiResponse.json();
-    console.log("OpenAI response:", data);
-
     const result = data?.choices?.[0]?.message?.content || "No insights returned from AI.";
 
     return NextResponse.json({ result });
