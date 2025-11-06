@@ -3,9 +3,13 @@ import { NextResponse } from "next/server";
 export async function POST(req: Request) {
   try {
     const { storeUrl } = await req.json();
-    if (!storeUrl) return NextResponse.json({ result: "Provide a store URL." });
 
-    const prompt = `Analyze this e-commerce store: ${storeUrl}. Give actionable insights.`;
+    if (!storeUrl) {
+      console.error("No store URL provided.");
+      return NextResponse.json({ result: "Please provide a store URL." });
+    }
+
+    const prompt = `Analyze this e-commerce store: ${storeUrl}. Give actionable marketing, design, and SEO insights.`;
 
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -20,15 +24,16 @@ export async function POST(req: Request) {
     });
 
     const data = await response.json();
-    console.log("OpenAI response:", JSON.stringify(data, null, 2));
+    console.log("AI Response:", JSON.stringify(data, null, 2));
 
-    if (!data.choices) {
-      return NextResponse.json({ result: "AI returned no choices. Check API key." });
+    if (!data?.choices?.length) {
+      console.error("No choices in AI response:", data);
+      return NextResponse.json({ result: "No response from AI." });
     }
 
     return NextResponse.json({ result: data.choices[0].message.content });
-  } catch (err) {
-    console.error("Error in /api/analyze:", err);
-    return NextResponse.json({ result: "Error analyzing store. See server logs." });
+  } catch (error) {
+    console.error("Error in /api/analyze route:", error);
+    return NextResponse.json({ result: "Error analyzing store." });
   }
 }
