@@ -7,19 +7,30 @@ export default function Home() {
   const [analysis, setAnalysis] = useState("");
 
   const analyzeStore = async () => {
+    if (!storeUrl) {
+      setAnalysis("Please enter a store URL.");
+      return;
+    }
+
     setLoading(true);
     setAnalysis("");
 
     try {
-      const res = await fetch("/api/analyze", {
+      // Absolute URL approach (works reliably on Vercel)
+      const res = await fetch(`${window.location.origin}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ storeUrl }),
       });
 
+      if (!res.ok) {
+        throw new Error("Network response not OK");
+      }
+
       const data = await res.json();
-      setAnalysis(data.result);
+      setAnalysis(data.result || "No response from AI.");
     } catch (err) {
+      console.error("Fetch error:", err);
       setAnalysis("Error analyzing store. Please try again.");
     } finally {
       setLoading(false);
@@ -40,6 +51,7 @@ export default function Home() {
           className="border w-full p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <button
+          type="button" // ensures the page doesn’t reload
           onClick={analyzeStore}
           disabled={loading}
           className="bg-indigo-600 text-white w-full p-3 rounded-lg hover:bg-indigo-700 transition"
