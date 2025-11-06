@@ -16,16 +16,13 @@ export default function Home() {
     setAnalysis("");
 
     try {
-      // Absolute URL approach (works reliably on Vercel)
       const res = await fetch(`${window.location.origin}/api/analyze`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ storeUrl }),
       });
 
-      if (!res.ok) {
-        throw new Error("Network response not OK");
-      }
+      if (!res.ok) throw new Error(`Network error: ${res.status}`);
 
       const data = await res.json();
       setAnalysis(data.result || "No response from AI.");
@@ -51,7 +48,7 @@ export default function Home() {
           className="border w-full p-3 rounded-lg mb-4 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
         <button
-          type="button" // ensures the page doesn’t reload
+          type="button"
           onClick={analyzeStore}
           disabled={loading}
           className="bg-indigo-600 text-white w-full p-3 rounded-lg hover:bg-indigo-700 transition"

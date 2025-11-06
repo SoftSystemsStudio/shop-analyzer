@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 export async function POST(req: Request) {
   try {
-    console.log("API route called"); // Step 1: confirm route is hit
+    console.log("API route called");
 
     const body = await req.json();
     console.log("Request body:", body);
@@ -13,9 +13,13 @@ export async function POST(req: Request) {
       return NextResponse.json({ result: "Please provide a store URL." });
     }
 
-    const prompt = `Analyze this e-commerce store: ${storeUrl}. Give actionable insights.`;
+    if (!process.env.OPENAI_API_KEY) {
+      console.error("Missing OPENAI_API_KEY");
+      return NextResponse.json({ result: "OpenAI API key not set." });
+    }
 
-    // Step 2: Call OpenAI API
+    const prompt = `Analyze this e-commerce store: ${storeUrl}. Give actionable insights for the owner.`;
+
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
