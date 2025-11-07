@@ -9,8 +9,9 @@
     "lint": "eslint"
   },
   "dependencies": {
-    "@clerk/nextjs": "^6.34.4",
+    "@clerk/nextjs": "^6.34.5",
     "cheerio": "^1.1.2",
+    "lucide-react": "^0.552.0",
     "next": "16.0.1",
     "puppeteer": "^24.29.1",
     "react": "19.2.0",
