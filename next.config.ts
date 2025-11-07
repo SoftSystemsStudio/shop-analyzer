@@ -1,8 +1,14 @@
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  experimental: {
-    serverActions: true,
-  },
-}
+import type { NextConfig } from "next";
 
-module.exports = nextConfig
+const nextConfig: NextConfig = {
+  experimental: {
+    serverActions: {
+      allowedOrigins: [
+        "localhost:3000",
+        "ideal-space-trout-r7r56g77q9x26xw-3000.app.github.dev", // 👈 your Codespaces URL
+      ],
+    },
+  },
+};
+
+export default nextConfig;
